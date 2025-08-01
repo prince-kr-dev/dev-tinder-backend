@@ -9,8 +9,8 @@ const app = express();
 
 
 // app.post("/user",(req, res)=>{
-//     res.send("Saving data to database");
-// })
+    //     res.send("Saving data to database");
+    // })
 
 // app.delete("/user",(req, res)=>{
 //     res.send("Deleted data successfully");
@@ -18,41 +18,50 @@ const app = express();
 
 //This will match all the HTTP method API calls to /test
 // app.use(
-//     "/test",
-//     (req, res,next)=>{
-//         // res.send("1st Response");
-//         next();
-//     },
-//     (req, res)=>{
-//         res.send("2nd Response");
-//     }
-// )
+    //     "/test",
+    //     (req, res,next)=>{
+        //         // res.send("1st Response");
+        //         next();
+        //     },
+        //     (req, res)=>{
+            //         res.send("2nd Response");
+            //     }
+            // )
+            
+            
+            
+            
+            // //Multiple route handler
+            
+            // // Handler 1
+            // const handler1 = (req, res, next) => {
+                //   console.log("Handler 1");
+                //   next();
+                // };
+                
+                // // Handler 2
+                // const handler2 = (req, res, next) => {
+                    //   console.log("Handler 2");
+                    //   next();
+                    // };
+                    
+                    // // Handler 3
+                    // const handler3 = (req, res) => {
+                        //   console.log("Handler 3");
+                        //   res.send("Done");
+// };
+
+const { adminAuth } = require("./middlewares/auth");
+app.use("/admin", adminAuth);
+
+app.get("/admin/getAllData", (req,res)=>{
+    res.send("All data sent");
+})
 
 
-
-
-//Multiple route handler
-
-// Handler 1
-const handler1 = (req, res, next) => {
-  console.log("Handler 1");
-  next();
-};
-
-// Handler 2
-const handler2 = (req, res, next) => {
-  console.log("Handler 2");
-  next();
-};
-
-// Handler 3
-const handler3 = (req, res) => {
-  console.log("Handler 3");
-  res.send("Done");
-};
-
-// Apply all three to the same route
-app.get("/test", handler1, handler2, handler3);
+app.get("/admin/deleteUser", (req,res)=>{
+    res.send("Deleted a user");
+});
 
 app.listen(3000, ()=>{
     console.log("Serverver is successfully listening port 3000...");  
