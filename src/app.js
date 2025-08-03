@@ -55,12 +55,25 @@ const { adminAuth } = require("./middlewares/auth");
 app.use("/admin", adminAuth);
 
 app.get("/admin/getAllData", (req,res)=>{
-    res.send("All data sent");
+    try {
+        res.send("User data sent")   
+     throw new Error("Error");
+    }
+    catch(err){
+        res.status(500).send("Something went wrong");
+    }
 })
 
 
 app.get("/admin/deleteUser", (req,res)=>{
     res.send("Deleted a user");
+});
+
+//Error handling
+app.use((err, req, res, next) => {
+  if(err){
+    res.status(500).send("Something went wrong");
+  }
 });
 
 app.listen(3000, ()=>{
