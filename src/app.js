@@ -3,14 +3,20 @@ const {connectDB} = require("./config/database");
 const app = express();
 const { User } = require("./models/user")
 
+app.use(express.json()); //middelware that convert json to js object
+
 app.post("/signup", async (req, res) => {
   try {
-    const userObj = {
-      firstName: "John",
-      lastName: "Kates",
-      email: "kates.john@gmail.com",
-      password: "kates@#123",
-    };
+    // const userObj = {
+    //   firstName: "Nelson",
+    //   lastName: "Mandela",
+    //   email: "mandela.john@gmail.com",
+    //   password: "nelson@#123",
+    // };
+
+    //dynamic data
+    const userObj = req.body;
+    console.log(userObj);
 
     const user = new User(userObj);
     await user.save();
