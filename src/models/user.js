@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
+    trim:true,
   },
   password: {
     type: String,
@@ -22,6 +24,16 @@ const userSchema = new mongoose.Schema({
   gender: {
     type: String,
   },
+  photoURL:{
+    type: String,
+  },
+  about:{
+    type: String,
+    default: "This is the default about of the user",
+  },
+  sills:{
+    type: [String],
+  }
 });
 
 const User = mongoose.model("User", userSchema);
