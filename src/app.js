@@ -23,7 +23,7 @@ app.post("/signup", async (req, res) => {
     res.send("User added successfully");
   } catch (err) {
     console.error("Error saving user:", err.message);
-    res.status(400).send("Failed to save user");
+    res.status(400).send("Failed to save user " + err.message);
   }
 });
 
@@ -43,7 +43,7 @@ app.get("/user", async (req, res) => {
 });
 
 //GET all data
-app.get("/feed", async(req, res) => {
+app.get("/feed", async (req, res) => {
   try {
     const user = await User.find({});
     res.send(user);
@@ -53,29 +53,42 @@ app.get("/feed", async(req, res) => {
 });
 
 //DELETE user
-app.delete("/user", async(req,res)=>{
+app.delete("/user", async (req, res) => {
   const userId = req.body.userId;
-  try{
+  try {
     const user = await User.findByIdAndDelete(userId);
     res.send("User deleted successfully");
-  }catch (err) {
+  } catch (err) {
     res.status(400).send("Something went wrong");
   }
 });
 
 //Update data
-app.patch("/user", async(req, res)=>{
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
   const data = req.body;
-  try{
-    await User.findByIdAndUpdate({_id: userId}, data, {
+
+  try {
+    const ALLOWED_UPDATE = ["firstName","photoURL", "about", "gender", "age", "skills"];
+
+    const isUpdateAllowed = Object.keys(data).every((k) => {
+      return ALLOWED_UPDATE.includes(k);
+    });
+    if (!isUpdateAllowed) {
+      throw new Error("Update not allowed");
+    }
+    if (Array.isArray(data.skills) && data.skills.length > 20) {
+      throw new Error("Skills can't be more than 20");
+    }
+
+    await User.findByIdAndUpdate({ _id: userId }, data, {
       runValidators: true, //this run validator function when data updated
     });
     res.send("User data updated successfully");
-  }catch (err) {
+  } catch (err) {
     res.status(400).send("Something went wrong");
   }
-})
+});
 
 connectDB()
   .then(() => {
