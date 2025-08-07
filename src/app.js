@@ -2,28 +2,37 @@ const express = require("express");
 const { connectDB } = require("./config/database");
 const app = express();
 const { User } = require("./models/user");
+const { validateSignupData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 app.use(express.json()); //middelware that convert json to js object
 
 app.post("/signup", async (req, res) => {
   try {
-    // const userObj = {
-    //   firstName: "Nelson",
-    //   lastName: "Mandela",
-    //   email: "mandela.john@gmail.com",
-    //   password: "nelson@#123",
-    // };
+    const { password,firstName, lastName, email } = req.body;
 
-    //dynamic data
+
+    //validation of data
+    validateSignupData(req.body);
+
+    //Encrypt password
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log(passwordHash);
+
     const userObj = req.body;
     console.log(userObj);
 
-    const user = new User(userObj);
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password: passwordHash,
+    });
     await user.save();
     res.send("User added successfully");
   } catch (err) {
     console.error("Error saving user:", err.message);
-    res.status(400).send("Failed to save user " + err.message);
+    res.status(400).send("ERROR : " + err.message);
   }
 });
 
@@ -69,7 +78,14 @@ app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
 
   try {
-    const ALLOWED_UPDATE = ["firstName","photoURL", "about", "gender", "age", "skills"];
+    const ALLOWED_UPDATE = [
+      "firstName",
+      "photoURL",
+      "about",
+      "gender",
+      "age",
+      "skills",
+    ];
 
     const isUpdateAllowed = Object.keys(data).every((k) => {
       return ALLOWED_UPDATE.includes(k);
