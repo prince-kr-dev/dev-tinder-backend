@@ -4,6 +4,7 @@ const app = express();
 const { User } = require("./models/user");
 const { validateSignupData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 app.use(express.json()); //middelware that convert json to js object
 
@@ -35,6 +36,34 @@ app.post("/signup", async (req, res) => {
     res.status(400).send("ERROR : " + err.message);
   }
 });
+
+app.post("/login", async (req,res)=>{
+  try {
+    const {email, password} = req.body;
+
+    if(!validator.isEmail(email)){
+      throw new Error("Enter valid email");
+    }
+
+    const user = await User.findOne({email : email});
+    if(!user){
+      throw new Error("Invalid Crendential");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if(isPasswordValid){
+      res.send("Login Successfull");
+    }
+    else{
+      throw new Error("Invalid Crendential");
+    }
+
+
+  } catch (err) {
+    res.status(400).send("ERROR : " + err.message);
+  }
+})
 
 //GET user by email
 app.get("/user", async (req, res) => {
