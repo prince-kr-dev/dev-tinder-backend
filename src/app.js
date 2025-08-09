@@ -5,8 +5,11 @@ const { User } = require("./models/user");
 const { validateSignupData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json()); //middelware that convert json to js object
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   try {
@@ -18,10 +21,10 @@ app.post("/signup", async (req, res) => {
 
     //Encrypt password
     const passwordHash = await bcrypt.hash(password, 10);
-    console.log(passwordHash);
+    // console.log(passwordHash);
 
     const userObj = req.body;
-    console.log(userObj);
+    // console.log(userObj);
 
     const user = new User({
       firstName,
@@ -53,6 +56,13 @@ app.post("/login", async (req,res)=>{
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if(isPasswordValid){
+
+      const token = await jwt.sign({_id: user.id}, "DEVTinder$79");
+
+      res.cookie("token",token);
+      // console.log(token);
+      
+
       res.send("Login Successfull");
     }
     else{
@@ -61,6 +71,34 @@ app.post("/login", async (req,res)=>{
 
 
   } catch (err) {
+    res.status(400).send("ERROR : " + err.message);
+  }
+})
+
+
+app.get("/profile", async(req,res)=>{
+  try{
+    const cookie = req.cookies;
+  
+    const {token} = cookie;
+    
+    if(!token){
+      throw new Error("Invalid TOKEN");
+    }
+  
+    const decodedMsg = await jwt.verify(token, "DEVTinder$79");
+    const {_id} = decodedMsg;
+    
+    const user = await User.findById(_id);
+    
+    if(!user){
+      throw new Error("User not found");
+    }
+
+    console.log(`You are: ${user.firstName} ${user.lastName}\nEmail: ${user.email}`);
+
+    res.send(user);
+  }catch (err) {
     res.status(400).send("ERROR : " + err.message);
   }
 })
