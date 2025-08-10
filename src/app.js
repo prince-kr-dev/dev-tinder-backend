@@ -79,22 +79,6 @@ app.post("/login", async (req,res)=>{
 
 app.get("/profile", userAuth, async(req,res)=>{
   try{
-    const cookie = req.cookies;
-  
-    const {token} = cookie;
-    
-    if(!token){
-      throw new Error("Invalid TOKEN");
-    }
-  
-    const decodedMsg = await jwt.verify(token, "DEVTinder$79");
-    const {_id} = decodedMsg;
-    
-    const user = await User.findById(_id);
-    
-    if(!user){
-      throw new Error("User not found");
-    }
 
     console.log(`You are: ${user.firstName} ${user.lastName}\nEmail: ${user.email}`);
 
