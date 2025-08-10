@@ -6,7 +6,6 @@ const { validateSignupData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
 const {userAuth} = require("./middlewares/auth");
 
 app.use(express.json()); //middelware that convert json to js object
@@ -54,11 +53,11 @@ app.post("/login", async (req,res)=>{
       throw new Error("Invalid Crendential");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.validatePassword(password);
 
     if(isPasswordValid){
 
-      const token = await jwt.sign({_id: user.id}, "DEVTinder$79", {expiresIn: "1d"});
+      const token = await user.getJWT();
 
       res.cookie("token",token);
       // console.log(token);
