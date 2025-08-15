@@ -1,6 +1,6 @@
 const express = require("express");
 const authRouter = express.Router();
-const User = require("../models/user");
+const {User} = require("../models/user");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const { validateSignupData } = require("../utils/validation");
@@ -13,7 +13,7 @@ authRouter.post("/signup", async (req, res) => {
     const {
       firstName,
       lastName,
-      emailId,
+      email,
       password,
       age,
       gender,
@@ -23,7 +23,7 @@ authRouter.post("/signup", async (req, res) => {
     //Encrypt the password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const checkEmail=await User.findOne({emailId});
+    const checkEmail=await User.findOne({ email });
     console.log(checkEmail)
     if(checkEmail){
       throw new Error("Email Already Exist")
@@ -33,7 +33,7 @@ authRouter.post("/signup", async (req, res) => {
     const user = new User({
       firstName,
       lastName,
-      emailId,
+      email,
       password: passwordHash,
       age,
       gender,
@@ -41,7 +41,7 @@ authRouter.post("/signup", async (req, res) => {
       skills,
     });
     const savedUser = await user.save();
-    const token = await savedUser.getjwt();
+    const token = await savedUser.getJWT();
     res.cookie("token", token, {
       expires: new Date(Date.now() + 8 * 3600000),
     });
@@ -55,17 +55,17 @@ authRouter.post("/signup", async (req, res) => {
 
 authRouter.post("/login", async (req, res) => {
   try {
-    const { emailId, password } = req.body;
-    if (!validator.isEmail(emailId)) {
+    const { email, password } = req.body;
+    if (!validator.isEmail(email)) {
       throw new Error("Invalid Email");
     }
-    const user = await User.findOne({ emailId: emailId });
+    const user = await User.findOne({email});
     if (!user) {
       throw new Error("Invalid Credentials");
     }
     const isValidPassword = await user.validatePassword(password);
     if (isValidPassword) {
-      const token = await user.getjwt();
+      const token = await user.getJWT();
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
       });
