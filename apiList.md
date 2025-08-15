@@ -1,20 +1,25 @@
-POST /signup
-POST /login
-POST /logout
+# devTinder APIs
 
-GET /profile/view
-PATCH /profile/edit
-PATCH /profile/password
+authRouter
+- POST /signup
+- POST /login
+- POST /logout
 
-POST /request/send/interested/:userId
-POST /request/send/ignored/:userId
+profileRouter
+- GET /profile/view
+- PATCH /profile/edit
+- PATCH /profile/password
 
-POST /request/review/accepted/:requestId
-POST /request/review/rejected/:requestId
+connection
+- POST /request/send/interested/:userId
+- POST /request/send/ignored/:userId
+- POST /request/review/accepted/:requestId
+- POST /request/review/rejected/:requestId
 
-GET /connections
-GET /request/recieved
-GET /feed    - Gets you the profiles of the other users on platform
+userRouter
+- GET /connections
+- GET /request/recieved
+- GET /feed  - Gets you the profiles of the other users on platform
 
 
 
