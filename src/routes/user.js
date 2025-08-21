@@ -2,6 +2,7 @@ const express = require("express");
 const userRouter = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const connectionRequestModel = require("../models/connectionRequest");
+const { User } = require("../models/user");
 
 userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
   try {
@@ -42,18 +43,54 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
       .populate("fromUserId", ["firstName", "lastName", "skills", "photoURL"])
       .populate("toUserId", ["firstName", "lastName", "skills", "photoURL"]);
 
-      const data = connectionRequests.map(row => {
-        // If logged-in user is the sender, return the recipient
-        if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
-          return row.toUserId;
-        }
-        // If logged-in user is the recipient, return the sender
-        return row.fromUserId;
-      });
+    const data = connectionRequests.map((row) => {
+      // If logged-in user is the sender, return the recipient
+      if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
+        return row.toUserId;
+      }
+      // If logged-in user is the recipient, return the sender
+      return row.fromUserId;
+    });
 
     res.send({ data });
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+userRouter.get("/feed", userAuth, async (req, res) => {
+  try {
+    //User should see all the user cards except
+    //1. his own card
+    //2. his connections
+    //3. people who has already ignored
+    //4. user that is already requested by loggedin user
+
+    const loggedInUser = req.user;
+    const connectionRequests = await connectionRequestModel
+      .find({
+        $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+      })
+      .select("fromUserId toUserId");
+
+    const hiddenUsersFromFeed = new Set();
+    connectionRequests.forEach((req) => {
+      hiddenUsersFromFeed.add(req.fromUserId.toString());
+      hiddenUsersFromFeed.add(req.toUserId.toString());
+    });
+
+    const hiddenUserIds = Array.from(hiddenUsersFromFeed);
+
+    const refinedUserForFeed = await User.find({
+      $and: [
+        { _id: { $nin: hiddenUserIds } },
+        { _id: { $ne: loggedInUser._id } }
+      ]
+    }).select("firstName lastName skills photoURL");
+
+    res.send(refinedUserForFeed);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
   }
 });
 
