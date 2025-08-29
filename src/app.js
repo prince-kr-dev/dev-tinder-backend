@@ -11,9 +11,10 @@ const app = express();
 const cors = require("cors");
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.CLIENT_URL,
   credentials: true,
 }));
+
 app.use(express.json()); //middelware that convert json to js object
 app.use(cookieParser());
 
@@ -30,9 +31,9 @@ app.use("/", userRouter);
 connectDB()
   .then(() => {
     console.log("Databse connected successfully");
-    app.listen(3000, () => {
-      console.log("Serverver is successfully listening port 3000...");
-    });
+    app.listen(process.env.PORT, () => {
+      console.log(`Server is successfully listening on port ${process.env.PORT}...`);
+    });    
   })
   .catch((err) => {
     console.log("Database connection failed");

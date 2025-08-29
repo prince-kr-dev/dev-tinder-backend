@@ -62,14 +62,18 @@ const userSchema = new mongoose.Schema({
 }
 );
 
-userSchema.methods.getJWT = async function (){ //this keyword not work with arrow function ()=>{}
-
+userSchema.methods.getJWT = async function () {
   const user = this;
 
-  const token = await jwt.sign({_id: user.id}, "DEVTinder$79", {expiresIn: "1d"});
+  const token = await jwt.sign(
+    { _id: user.id },
+    process.env.JWT_SECRET,   // ✅ instead of "DEVTinder$79"
+    { expiresIn: process.env.JWT_EXPIRES_IN }
+  );
 
   return token;
-}
+};
+
 
 userSchema.methods.validatePassword = async function(passwordInputByUser){
   const user = this;
