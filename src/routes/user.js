@@ -13,7 +13,7 @@ userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
         toUserId: loggedInUser._id,
         status: "interested",
       })
-      .populate("fromUserId", ["firstName", "lastName", "skills", "photoURL"]);
+      .populate("fromUserId", ["firstName", "lastName", "skills", "photoURL", "about"]);
     //it is written as string also separated by space
     //   .populate("fromUserId", "firstName lastName skills"]);
 
@@ -40,9 +40,20 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
           { fromUserId: loggedInUser._id, status: "accepted" },
         ],
       })
-      .populate("fromUserId", ["firstName", "lastName", "skills", "photoURL"])
-      .populate("toUserId", ["firstName", "lastName", "skills", "photoURL"]);
-
+      .populate("fromUserId", [
+        "firstName",
+        "lastName",
+        "skills",
+        "photoURL",
+        "about", // 👈 added
+      ])
+      .populate("toUserId", [
+        "firstName",
+        "lastName",
+        "skills",
+        "photoURL",
+        "about", // 👈 added
+      ]);
     const data = connectionRequests.map((row) => {
       // If logged-in user is the sender, return the recipient
       if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
@@ -91,7 +102,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         { _id: { $ne: loggedInUser._id } },
       ],
     })
-      .select("firstName lastName skills photoURL")
+      .select("firstName lastName skills photoURL about")
       .skip(skip)
       .limit(limit);
 
