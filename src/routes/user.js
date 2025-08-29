@@ -13,7 +13,13 @@ userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
         toUserId: loggedInUser._id,
         status: "interested",
       })
-      .populate("fromUserId", ["firstName", "lastName", "skills", "photoURL", "about"]);
+      .populate("fromUserId", [
+        "firstName",
+        "lastName",
+        "skills",
+        "photoURL",
+        "about",
+      ]);
     //it is written as string also separated by space
     //   .populate("fromUserId", "firstName lastName skills"]);
 
@@ -71,22 +77,14 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 
 userRouter.get("/feed", userAuth, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    limit = limit > 20 ? 20 : limit;
-    const skip = (page - 1) * limit;
-    //User should see all the user cards except
-    //1. his own card
-    //2. his connections
-    //3. people who has already ignored
-    //4. user that is already requested by loggedin user
-
     const loggedInUser = req.user;
-    const connectionRequests = await connectionRequestModel
-      .find({
-        $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
-      })
-      .select("fromUserId toUserId");
+
+    const connectionRequests = await connectionRequestModel.find({
+      $or: [
+        { fromUserId: loggedInUser._id },
+        { toUserId: loggedInUser._id },
+      ],
+    }).select("fromUserId toUserId");
 
     const hiddenUsersFromFeed = new Set();
     connectionRequests.forEach((req) => {
@@ -94,22 +92,20 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       hiddenUsersFromFeed.add(req.toUserId.toString());
     });
 
+    hiddenUsersFromFeed.add(loggedInUser._id.toString());
     const hiddenUserIds = Array.from(hiddenUsersFromFeed);
 
+    // ✅ no skip/limit → all users except hidden
     const refinedUserForFeed = await User.find({
-      $and: [
-        { _id: { $nin: hiddenUserIds } },
-        { _id: { $ne: loggedInUser._id } },
-      ],
-    })
-      .select("firstName lastName skills photoURL about")
-      .skip(skip)
-      .limit(limit);
+      _id: { $nin: hiddenUserIds },
+    }).select("firstName lastName skills photoURL about");
 
-    res.send(refinedUserForFeed);
+    res.json(refinedUserForFeed);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 });
+
+
 
 module.exports = userRouter;
